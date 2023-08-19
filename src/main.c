@@ -30,7 +30,8 @@ void setup(void)
         window_height);
 
     // Start loading my array of vectors
-    load_cube_mesh_data();
+    // load_cube_mesh_data();
+    load_obj_file_data("./assets/cube.obj");
 }
 
 void process_input(void)
