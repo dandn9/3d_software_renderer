@@ -40,12 +40,12 @@ face_t cube_faces[N_CUBE_FACES] = {
 
 void load_cube_mesh_data(void)
 {
-    for (int i = 0; N_CUBE_VERTICES; i++)
+    for (int i = 0; i < N_CUBE_VERTICES; i++)
     {
         vec3_t cube_vertex = cube_vertices[i];
         array_push(mesh.vertices, cube_vertex);
     }
-    for (int i = 0; N_CUBE_FACES; i++)
+    for (int i = 0; i < N_CUBE_FACES; i++)
     {
         face_t cube_face = cube_faces[i];
         array_push(mesh.faces, cube_face);
