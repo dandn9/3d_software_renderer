@@ -9,7 +9,7 @@
 
 triangle_t *triangles_to_render = NULL;
 
-vec3_t camera_position = {.x = 0, .y = 0, .z = -5};
+vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
 
 float fov_factor = 640;
 
@@ -31,7 +31,7 @@ void setup(void)
 
     // Start loading my array of vectors
     // load_cube_mesh_data();
-    load_obj_file_data("./assets/f22.obj");
+    load_obj_file_data("./assets/cube.obj");
 }
 
 void process_input(void)
@@ -92,9 +92,9 @@ void update(void)
         face_vertices[1] = mesh.vertices[mesh_face.b - 1];
         face_vertices[2] = mesh.vertices[mesh_face.c - 1];
 
-        triangle_t projected_triangle;
-        // Loop all three vertices of this current face and apply transformations
+        vec3_t transformed_vertices[3];
 
+        // Loop all three vertices of this current face and apply transformations
         for (int j = 0; j < 3; j++)
         {
             vec3_t transformed_vertex = face_vertices[j];
@@ -104,9 +104,46 @@ void update(void)
             transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
             // Translate the vertex away from camera
-            transformed_vertex.z -= camera_position.z;
+            transformed_vertex.z += -5;
 
-            vec2_t projected_point = project(transformed_vertex);
+            // Save transformed vertex in the array of transformed vertices
+            transformed_vertices[j] = transformed_vertex;
+
+        }
+
+        // Check for backface culling
+        vec3_t vector_a = transformed_vertices[0]; /*   A   */
+        vec3_t vector_b = transformed_vertices[1]; /*  / \  */
+        vec3_t vector_c = transformed_vertices[2]; /* C---B */
+
+        // Get the vectors that go from A to B and A to C to get the cross product
+        vec3_t vector_ab = vec3_sub(vector_b, vector_a);
+        vec3_t vector_ac = vec3_sub(vector_c, vector_a);
+        vec3_normalize(&vector_ab);
+        vec3_normalize(&vector_ac);
+
+        // Compute the face normal using the cross product , finding the perpendicular vector - our system is left handed ( z grows inside the monitor )
+        // !! Order is important ( if it was a Right Handed coordinate system, it would've been vector_ac X vector_ab )
+        vec3_t normal = vec3_cross(vector_ab, vector_ac);
+
+        // normalize the face vector - mutating it
+        vec3_normalize(&normal);
+
+        // Find the vector between a Point in the triangle and  the camera origin
+        vec3_t camera_ray = vec3_sub(camera_position, vector_a);
+
+        // How aligned the camera ray is with the face normal
+        float dot_normal_camera = vec3_dot(normal, camera_ray);
+
+        // Bypass the triangles that are looking away from the camera
+        if(dot_normal_camera < 0){
+            continue;
+        }
+
+        triangle_t projected_triangle;
+        // Loop all three vertices to perform projection
+        for (int j = 0; j < 3; j++) {
+            vec2_t projected_point = project(transformed_vertices[j]);
 
             // Scale and translate projected points to the middle of the screen
             projected_point.x += (window_width / 2);
@@ -118,6 +155,9 @@ void update(void)
         // Save the projected triangle in the array of triangles to render
         // triangles_to_render[i] = projected_triangle;
         array_push(triangles_to_render, projected_triangle);
+
+
+        
     }
 }
 
