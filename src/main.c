@@ -165,6 +165,7 @@ void update(void)
 
 
         vec2_t projected_points[3];
+
         // Loop all three vertices to perform projection
         for (int j = 0; j < 3; j++) {
             projected_points[j] = project(transformed_vertices[j]);
@@ -175,24 +176,50 @@ void update(void)
 
         }
 
+        // Calculate the avg depth for each face based on the vertices Z value after transformation
+        float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3;
+
+
         triangle_t projected_triangle =  {
             .points = {
                 {projected_points[0].x, projected_points[0].y},
                 {projected_points[1].x, projected_points[1].y},
                 {projected_points[2].x, projected_points[2].y}
                  },
-            .color = mesh_face.color
+            .color = mesh_face.color,
+            .avg_depth = avg_depth
         };
 
 
         // Save the projected triangle in the array of triangles to render
         // triangles_to_render[i] = projected_triangle;
         array_push(triangles_to_render, projected_triangle);
-
-
         
     }
+
+    int triangles_n = array_length(triangles_to_render);
+    // print_triangles(&*triangles_to_render, triangles_n);
+
+    // Sort triangles to render by their avg_depth (Painter's algorithm)
+    // Simple bubble sort
+    for(int i = 0; i < triangles_n - 1; i++) {
+        for(int j = i + 1; j < triangles_n; j++){
+            if(triangles_to_render[j].avg_depth < triangles_to_render[i].avg_depth){
+                triangle_t temp = triangles_to_render[i];
+                triangles_to_render[i] = triangles_to_render[j];
+                triangles_to_render[j] = temp;
+            } 
+        }
+    }
+    
 }
+// void print_triangles (triangle_t* t, int length){
+//     printf("[");
+//     for(int i = 0; i < length; i++){
+//         printf("%f,", t[i].avg_depth);
+//     }
+//     printf("]\n");
+// }
 
 void render(void)
 {
