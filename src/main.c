@@ -16,6 +16,17 @@ float fov_factor = 640;
 bool is_running = false;
 int previous_frame_time = 0;
 
+enum DISPLAY_MODE { 
+    WireframeDot,
+    WireframeLine,
+    Filled,
+    FilledWireframe
+
+};
+
+enum DISPLAY_MODE display_mode;
+bool should_cull = true;
+
 void setup(void)
 {
     // Allocate the required memory in bytes to hold the color buffer
@@ -45,6 +56,18 @@ void process_input(void)
         is_running = false;
         break;
     case SDL_KEYDOWN:
+        if (event.key.keysym.sym == SDLK_1)
+            display_mode = WireframeDot;
+        if (event.key.keysym.sym == SDLK_2)
+            display_mode = WireframeLine;
+        if (event.key.keysym.sym == SDLK_3)
+            display_mode = Filled;
+        if (event.key.keysym.sym == SDLK_4)
+            display_mode = FilledWireframe;
+        if (event.key.keysym.sym == SDLK_c)
+            should_cull = true;
+        if (event.key.keysym.sym == SDLK_d)
+            should_cull = false;
         if (event.key.keysym.sym == SDLK_ESCAPE)
             is_running = false;
         break;
@@ -110,7 +133,7 @@ void update(void)
             transformed_vertices[j] = transformed_vertex;
 
         }
-
+        if(should_cull){
         // Check for backface culling
         vec3_t vector_a = transformed_vertices[0]; /*   A   */
         vec3_t vector_b = transformed_vertices[1]; /*  / \  */
@@ -139,6 +162,7 @@ void update(void)
         if(dot_normal_camera < 0){
             continue;
         }
+        }
 
         triangle_t projected_triangle;
         // Loop all three vertices to perform projection
@@ -166,25 +190,60 @@ void render(void)
     draw_grid();
 
 
-    draw_filled_triangle(300,100, 50, 400, 500, 700, 0xFFFF00FF);
-    // // Loop all projected triangles and render them
-    // int num_triangles = array_length(triangles_to_render);
-    // for (int i = 0; i < num_triangles; i++)
-    // {
-    //     triangle_t triangle = triangles_to_render[i];
+    // draw_filled_triangle(300,100, 50, 400, 500, 700, 0xFFFF00FF);
+    
 
-    //     // Draw Vertex Points
-    //     draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFFFF00);
-    //     draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFFFFFF00);
-    //     draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFFFFFF00);
+    // Loop all projected triangles and render them
+    int num_triangles = array_length(triangles_to_render);
+    for (int i = 0; i < num_triangles; i++)
+    {
+        triangle_t triangle = triangles_to_render[i];
 
-    //     // Draw unifilled triangle
-    //     draw_triangle(
-    //         triangle.points[0].x, triangle.points[0].y,
-    //         triangle.points[1].x, triangle.points[1].y,
-    //         triangle.points[2].x, triangle.points[2].y,
-    //         0xFF00FF00);
-    // }
+
+        if(display_mode == WireframeDot){
+            // Draw Vertex Points
+            draw_rect(triangle.points[0].x -3, triangle.points[0].y -3, 6, 6, 0xFFFF0000);
+            draw_rect(triangle.points[1].x -3, triangle.points[1].y -3, 6, 6, 0xFFFF0000);
+            draw_rect(triangle.points[2].x -3, triangle.points[2].y -3, 6, 6, 0xFFFF0000);
+
+            draw_triangle(
+                triangle.points[0].x, triangle.points[0].y,
+                triangle.points[1].x, triangle.points[1].y,
+                triangle.points[2].x, triangle.points[2].y,
+                0xFFFFFF00);
+        }
+        if(display_mode == WireframeLine){
+            // Draw unifilled triangle
+            draw_triangle(
+                triangle.points[0].x, triangle.points[0].y,
+                triangle.points[1].x, triangle.points[1].y,
+                triangle.points[2].x, triangle.points[2].y,
+                0xFFFFFF00);
+        }
+        if(display_mode == Filled){
+            // Draw unifilled triangle
+            draw_filled_triangle(
+                triangle.points[0].x, triangle.points[0].y,
+                triangle.points[1].x, triangle.points[1].y,
+                triangle.points[2].x, triangle.points[2].y,
+                0xFFFFFFFF);
+        }
+        if(display_mode == FilledWireframe){
+            // Draw unifilled triangle
+            draw_filled_triangle(
+                triangle.points[0].x, triangle.points[0].y,
+                triangle.points[1].x, triangle.points[1].y,
+                triangle.points[2].x, triangle.points[2].y,
+                0xFF666666);
+            draw_triangle(
+                triangle.points[0].x, triangle.points[0].y,
+                triangle.points[1].x, triangle.points[1].y,
+                triangle.points[2].x, triangle.points[2].y,
+                0xFFFFFF00);
+        }
+
+
+    }
 
     // clear the array of triangles to render
     array_free(triangles_to_render);
