@@ -13,6 +13,9 @@ extern uint32_t* color_buffer;
 extern SDL_Texture* color_buffer_texture;
 extern int window_width;
 extern int window_height;
+extern bool should_cull;
+
+
 
 bool initialize_window(void);
 void clear_color_buffer(uint32_t color);
