@@ -7,7 +7,10 @@
 mesh_t mesh = {
     .vertices = NULL,
     .faces = NULL,
-    .rotation = {0, 0, 0}};
+    .rotation = {0, 0, 0},
+    .scale = {1.0, 1.0, 1.0},
+    .translation = {0, 0, 0}
+};
 
 vec3_t cube_vertices[N_CUBE_VERTICES] = {
     {.x = -1, .y = -1, .z = -1}, // 1
@@ -19,8 +22,8 @@ vec3_t cube_vertices[N_CUBE_VERTICES] = {
     {.x = -1, .y = 1, .z = 1},   // 7
     {.x = -1, .y = -1, .z = 1}   // 8
 };
-
 face_t cube_faces[N_CUBE_FACES] = {
+
     // front
     {.a = 1, .b = 2, .c = 3, .color = 0xFFFF0000},
     {.a = 1, .b = 3, .c = 4, .color = 0xFFFF0000},
