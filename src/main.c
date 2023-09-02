@@ -8,11 +8,12 @@
 #include "array.h"
 #include "matrix.h"
 
+#define PI 3.14159265359
+
 triangle_t *triangles_to_render = NULL;
 
 vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
-
-float fov_factor = 640;
+mat4_t proj_matrix;
 
 bool is_running = false;
 int previous_frame_time = 0;
@@ -39,6 +40,16 @@ void setup(void)
         SDL_TEXTUREACCESS_STREAMING,
         window_width,
         window_height);
+
+
+    // Initialize the perspective projection matrix
+    float fov = PI / 3.0; // same as 180 / 3 or 60 deg
+    float aspect = (float)window_height / window_width;
+    float znear = 0.1;
+    float zfar = 100.0;
+
+    proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
+
 
     // Start loading my array of vectors
     load_cube_mesh_data();
@@ -77,13 +88,13 @@ void process_input(void)
 ////////////////////////////////////////////////////////////////////////////////
 // Function that receives a 3D vector and returns a projected 2D point
 ////////////////////////////////////////////////////////////////////////////////
-vec2_t project(vec3_t point)
-{
-    vec2_t projected_point = {
-        .x = (fov_factor * point.x) / point.z,
-        .y = (fov_factor * point.y) / point.z};
-    return projected_point;
-}
+// vec2_t project(vec3_t point)
+// {
+//     vec2_t projected_point = {
+//         .x = (fov_factor * point.x) / point.z,
+//         .y = (fov_factor * point.y) / point.z};
+//     return projected_point;
+// }
 
 void update(void)
 {
@@ -133,7 +144,7 @@ void update(void)
             vec4_t transformed_vertex = vec4_from_vec3(face_vertices[j]);
 
             mat4_t world_matrix = mat4_identity();
-            // Multiply all matrices and load the world matrix
+            // Multiply all matrices and load the world matrix [T]*[R]*[S]*v
             world_matrix = mat4_mul_mat4(scale_matrix, world_matrix);
             world_matrix = mat4_mul_mat4(rotation_matrix_x, world_matrix);
             world_matrix = mat4_mul_mat4(rotation_matrix_y, world_matrix);
@@ -180,13 +191,17 @@ void update(void)
         }
 
 
-        vec2_t projected_points[3];
+        vec4_t projected_points[3];
 
         // Loop all three vertices to perform projection
         for (int j = 0; j < 3; j++) {
-            projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]));
+            projected_points[j] = mat4_mul_vec4_project(proj_matrix, transformed_vertices[j]);
 
-            // Scale and translate projected points to the middle of the screen
+            // scale into the view
+            projected_points[j].x *= (window_width / 2.0);
+            projected_points[j].y *= (window_height / 2.0);
+
+            // translate projected points to the middle of the screen
             projected_points[j].x += (window_width / 2);
             projected_points[j].y += (window_height / 2);
 
