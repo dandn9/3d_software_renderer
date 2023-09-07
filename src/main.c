@@ -296,10 +296,10 @@ void render(void)
         // Draw textured triangle
         if (render_mode == RenderTextured || render_mode == RenderTexturedWired) {
             draw_textured_triangle(
-                triangle.points[0].x, triangle.points[0].y, triangle.texcoords[0].u, triangle.texcoords[0].v
-                triangle.points[1].x, triangle.points[1].y, triangle.texcoords[1].u, triangle.texcoords[1].v
-                triangle.points[2].x, triangle.points[2].y, triangle.texcoords[2].u, triangle.texcoords[2].v
-                triangle.color);
+                triangle.points[0].x, triangle.points[0].y, triangle.texcoords[0].u, triangle.texcoords[0].v,
+                triangle.points[1].x, triangle.points[1].y, triangle.texcoords[1].u, triangle.texcoords[1].v,
+                triangle.points[2].x, triangle.points[2].y, triangle.texcoords[2].u, triangle.texcoords[2].v,
+                mesh_texture);
         }
         // Draw wireframe
         if (render_mode == WireframeDot || render_mode == WireframeLine || render_mode == FilledWireframe || render_mode == RenderTexturedWired)
