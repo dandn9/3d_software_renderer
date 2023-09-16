@@ -3,4 +3,7 @@ build:
 run:
 	./renderer.exe
 clean:
-	del renderer.exe	
+	del renderer.exe
+run_build:
+	$(MAKE) build
+	$(MAKE) run
