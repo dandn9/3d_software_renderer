@@ -1,1 +1,10 @@
-{}
+{
+	"files.associations": {
+		"*.excalidraw": "json",
+		"*.excalidrawlib": "json",
+		"*.toml": "properties",
+		"*.java": "java",
+		"*.rs": "rust",
+		"stdio.h": "c"
+	}
+}

@@ -10,6 +10,7 @@
 #include "light.h"
 #include "texture.h"
 #include "triangle.h"
+#include "upng.h"
 
 #define PI 3.14159265359
 
@@ -30,7 +31,7 @@ void setup(void)
     // Creating a SDL texture that is used to display the color buffer
     color_buffer_texture = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_ARGB8888,
+        SDL_PIXELFORMAT_RGBA32,
         SDL_TEXTUREACCESS_STREAMING,
         window_width,
         window_height);
@@ -44,15 +45,16 @@ void setup(void)
     proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
 
     // Manually load the hardcoded texture data from the static array
-    mesh_texture = (uint32_t*) REDBRICK_TEXTURE;
-    texture_width = 64;
-    texture_height = 64;
+    // mesh_texture = (uint32_t*) REDBRICK_TEXTURE;
+    // texture_width = 64;
+    // texture_height = 64;
 
 
 
     // Start loading my array of vectors
     load_cube_mesh_data();
-    // load_obj_file_data("./assets/f22.obj");
+    // loads the texutre info from an external PNG file
+    load_png_texture_data("./assets/cube.png");
 }
 
 void process_input(void)
