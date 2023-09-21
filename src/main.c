@@ -53,9 +53,9 @@ void setup(void)
 
     // Start loading my array of vectors
     // load_cube_mesh_data();
-    load_obj_file_data("./assets/f22.obj");
+    load_obj_file_data("./assets/drone.obj");
     // loads the texutre info from an external PNG file
-    load_png_texture_data("./assets/f22.png");
+    load_png_texture_data("./assets/drone.png");
 }
 
 void process_input(void)
@@ -336,6 +336,7 @@ void render(void)
 void free_resources(void)
 {
     free(color_buffer);
+    upng_free(png_texture);
     array_free(mesh.faces);
     array_free(mesh.vertices);
 }
