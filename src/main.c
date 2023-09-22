@@ -26,7 +26,9 @@ bool should_cull = true;
 void setup(void)
 {
     // Allocate the required memory in bytes to hold the color buffer
-    color_buffer = (uint32_t *)malloc(sizeof(uint32_t) * window_width * window_height);
+    color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
+    // Allocate the required memory for the zbuffer
+    z_buffer = (float*)malloc(sizeof(float) * window_width * window_height);
 
     // Creating a SDL texture that is used to display the color buffer
     color_buffer_texture = SDL_CreateTexture(
@@ -53,9 +55,9 @@ void setup(void)
 
     // Start loading my array of vectors
     // load_cube_mesh_data();
-    load_obj_file_data("./assets/drone.obj");
+    load_obj_file_data("./assets/f22.obj");
     // loads the texutre info from an external PNG file
-    load_png_texture_data("./assets/drone.png");
+    load_png_texture_data("./assets/f22.png");
 }
 
 void process_input(void)
@@ -331,11 +333,14 @@ void render(void)
 
     clear_color_buffer(0xFF000000);
 
+    clear_z_buffer();
+
     SDL_RenderPresent(renderer);
 }
 void free_resources(void)
 {
     free(color_buffer);
+    free(z_buffer);
     upng_free(png_texture);
     array_free(mesh.faces);
     array_free(mesh.vertices);

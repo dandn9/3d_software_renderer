@@ -6,5 +6,6 @@
 		"*.java": "java",
 		"*.rs": "rust",
 		"stdio.h": "c"
-	}
+	},
+	"C_Cpp.default.compilerPath": "C:\\msys64\\mingw64\\bin\\gcc.exe"
 }

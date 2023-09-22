@@ -158,7 +158,15 @@ void draw_texel(int x, int y,
     int tex_x = abs((int)(interpolated_u * texture_width)) % texture_width;
     int tex_y = abs((int)(interpolated_v * texture_height)) % texture_height;
 
+    // Adjust 1/w so the pixel that are closer to the viewer have smaller values (bcs 1/2 > 1/3)
+    interpolated_reciprocal_w = 1.0 - interpolated_reciprocal_w;
+
+    // Only draw the pixel if the depth value is less than the one previous stored in the zbuffer
+    if(interpolated_reciprocal_w < z_buffer[(window_width * y) + x] ){
     draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
+    // Update the zbuffer value with the 1/w of this current pixel
+    z_buffer[(window_width * y) + x] = interpolated_reciprocal_w;
+    }
 }
 
 // Draw a textured triangle with a flat-top/flat bottom method
