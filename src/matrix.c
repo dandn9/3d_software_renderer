@@ -125,3 +125,22 @@ vec4_t mat4_mul_vec4_project(mat4_t mat_proj, vec4_t v) {
 
     return result;
 }
+mat4_t mat4_look_at(vec3_t eye, vec3_t target, vec3_t up) {
+
+    vec3_t z_origin = vec3_sub(target, eye);
+    vec3_normalize(&z_origin);
+    vec3_t x_origin = vec3_cross(z_origin, up);
+    vec3_normalize(&x_origin);
+    vec3_t y_origin = vec3_cross(x_origin, z_origin);
+    vec3_normalize(&y_origin);
+
+    // This is the transposed matrix + translation matrix
+    mat4_t view_matrix = {{
+        { x_origin.x, x_origin.y, x_origin.z, -vec3_dot(x_origin, eye) },
+        { y_origin.x, y_origin.y, y_origin.z, -vec3_dot(y_origin, eye) },
+        { z_origin.x, z_origin.y, z_origin.z, -vec3_dot(z_origin, eye) },
+        { 0         , 0         , 0         , 1 }
+    }};
+
+    return view_matrix;
+}
