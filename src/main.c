@@ -88,10 +88,26 @@ void process_input(void)
             render_mode = RenderTexturedWired;
         if (event.key.keysym.sym == SDLK_c)
             should_cull = true;
-        if (event.key.keysym.sym == SDLK_d)
+        if (event.key.keysym.sym == SDLK_v)
             should_cull = false;
         if (event.key.keysym.sym == SDLK_ESCAPE)
             is_running = false;
+        if (event.key.keysym.sym == SDLK_UP)
+            camera.position.y += 3.0 * delta_time;
+        if (event.key.keysym.sym == SDLK_DOWN) 
+            camera.position.y -= 3.0 * delta_time;
+        if (event.key.keysym.sym == SDLK_a)
+            camera.yaw += 1.0 * delta_time;
+        if (event.key.keysym.sym == SDLK_d)
+            camera.yaw -= 1.0 * delta_time;
+        if (event.key.keysym.sym == SDLK_w) {
+            camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+            camera.position = vec3_add(camera.position, camera.forward_velocity);
+        }
+        if (event.key.keysym.sym == SDLK_s) {
+            camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+            camera.position = vec3_sub(camera.position, camera.forward_velocity);
+        }
         break;
     }
 }
@@ -124,9 +140,9 @@ void update(void)
     // Initialize the counter of triangles to render for the current frame;
     num_triangles_to_render = 0;
 
-    mesh.rotation.x += 0.06 * delta_time;
-    mesh.rotation.y += 0.009 * delta_time;
-    mesh.rotation.z += 0.02 * delta_time;
+    mesh.rotation.x += 0.00 * delta_time;
+    mesh.rotation.y += 0.000 * delta_time;
+    mesh.rotation.z += 0.00 * delta_time;
     mesh.translation.z = 5.0;
     
 
@@ -137,9 +153,16 @@ void update(void)
     // mesh.translation.x += 0.01;
 
     // Create the view matrix to transform the objects into camera space looking at a hard coded target point
-    vec3_t target = { 0, 0, 5.0 };
-    vec3_t up = { 0, 1, 0 };
-    view_matrix = mat4_look_at(camera.position, target, up);
+    vec3_t up_direction = { 0 , 1, 0 };
+
+    // Initialize the target
+    vec3_t target = { 0, 0, 1 };
+    mat4_t camera_yaw_rotation = mat4_make_rotation_y(camera.yaw);
+    camera.direction = vec3_from_vec4(mat4_mul_vec4(camera_yaw_rotation, vec4_from_vec3(target)));
+    // Offset the camera position with the direction calculated by the target
+    target = vec3_add(camera.position, camera.direction);
+
+    view_matrix = mat4_look_at(camera.position, target, up_direction);
 
     // Create a scale, translation and rotation matrix that will be used to multiply the mesh vertices;
     mat4_t scale_matrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
