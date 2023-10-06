@@ -58,6 +58,10 @@ vec2_t vec2_from_vec4(vec4_t v)
         v.x, v.y};
     return result;
 }
+vec2_t vec2_new(float x, float y) { 
+    vec2_t result = { x, y };
+    return result;
+}
 
 ////////////////////////////////////////////////////////////////////////
 // Vec3D Functions
@@ -100,6 +104,10 @@ vec3_t vec3_div(vec3_t v, float factor)
     return result;
 }
 
+vec3_t vec3_new(float x, float y, float z) { 
+    vec3_t result = { x, y, z };
+    return result;
+}
 vec3_t vec3_cross(vec3_t a, vec3_t b)
 {
 

@@ -12,6 +12,7 @@
 #include "texture.h"
 #include "triangle.h"
 #include "upng.h"
+#include "clipping.h"
 
 #define PI 3.14159265359
 
@@ -46,10 +47,13 @@ void setup(void)
     // Initialize the perspective projection matrix
     float fov = PI / 3.0; // same as 180 / 3 or 60 deg
     float aspect = (float)window_height / window_width;
-    float znear = 0.1;
-    float zfar = 100.0;
+    float z_near = 0.1;
+    float z_far = 100.0;
 
-    proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
+    proj_matrix = mat4_make_perspective(fov, aspect, z_near, z_far);
+
+    // initialize the frustum planes with a point and a normal
+    init_frustum_planes(fov, z_near, z_far);
 
     // Manually load the hardcoded texture data from the static array
     // mesh_texture = (uint32_t*) REDBRICK_TEXTURE;
