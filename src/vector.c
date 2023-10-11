@@ -118,6 +118,14 @@ vec3_t vec3_cross(vec3_t a, vec3_t b)
     };
     return result;
 };
+vec3_t vec3_clone(vec3_t* v) {
+    vec3_t result = {
+        .x = v->x,
+        .y = v->y,
+        .z = v->z
+    };
+    return result;
+}
 void vec3_normalize(vec3_t *v)
 {
     float length = vec3_length(*v);

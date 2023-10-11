@@ -5,7 +5,8 @@
 		"*.toml": "properties",
 		"*.java": "java",
 		"*.rs": "rust",
-		"stdio.h": "c"
+		"stdio.h": "c",
+		"vector.h": "c"
 	},
 	"C_Cpp.default.compilerPath": "C:\\msys64\\mingw64\\bin\\gcc.exe"
 }

@@ -45,15 +45,18 @@ void setup(void)
         window_height);
 
     // Initialize the perspective projection matrix
-    float fov = PI / 3.0; // same as 180 / 3 or 60 deg
-    float aspect = (float)window_height / window_width;
+    float aspecty = (float)window_height / window_width;
+    float aspectx = (float)window_width / window_height;
+    float fovy = PI / 3.0; // same as 180 / 3 or 60 deg
+    float fovx = 2.0 * atan(tan(fovy / 2) * aspectx); // same as 180 / 3 or 60 deg
+    
     float z_near = 0.1;
     float z_far = 100.0;
 
-    proj_matrix = mat4_make_perspective(fov, aspect, z_near, z_far);
+    proj_matrix = mat4_make_perspective(fovy, aspecty, z_near, z_far);
 
     // initialize the frustum planes with a point and a normal
-    init_frustum_planes(fov, z_near, z_far);
+    init_frustum_planes(fovx, fovy, z_near, z_far);
 
     // Manually load the hardcoded texture data from the static array
     // mesh_texture = (uint32_t*) REDBRICK_TEXTURE;
@@ -62,9 +65,9 @@ void setup(void)
 
     // Start loading my array of vectors
     // load_cube_mesh_data();
-    load_obj_file_data("./assets/f22.obj");
+    load_obj_file_data("./assets/cube.obj");
     // loads the texutre info from an external PNG file
-    load_png_texture_data("./assets/f22.png");
+    load_png_texture_data("./assets/cube.png");
 }
 
 void process_input(void)
@@ -98,17 +101,19 @@ void process_input(void)
             is_running = false;
         if (event.key.keysym.sym == SDLK_UP)
             camera.position.y += 3.0 * delta_time;
-        if (event.key.keysym.sym == SDLK_DOWN) 
+        if (event.key.keysym.sym == SDLK_DOWN)
             camera.position.y -= 3.0 * delta_time;
         if (event.key.keysym.sym == SDLK_a)
             camera.yaw += 1.0 * delta_time;
         if (event.key.keysym.sym == SDLK_d)
             camera.yaw -= 1.0 * delta_time;
-        if (event.key.keysym.sym == SDLK_w) {
+        if (event.key.keysym.sym == SDLK_w)
+        {
             camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
             camera.position = vec3_add(camera.position, camera.forward_velocity);
         }
-        if (event.key.keysym.sym == SDLK_s) {
+        if (event.key.keysym.sym == SDLK_s)
+        {
             camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
             camera.position = vec3_sub(camera.position, camera.forward_velocity);
         }
@@ -148,7 +153,6 @@ void update(void)
     mesh.rotation.y += 0.000 * delta_time;
     mesh.rotation.z += 0.00 * delta_time;
     mesh.translation.z = 5.0;
-    
 
     // Change camera position per animation frame
     camera.position.x += 0.0 * delta_time;
@@ -157,10 +161,10 @@ void update(void)
     // mesh.translation.x += 0.01;
 
     // Create the view matrix to transform the objects into camera space looking at a hard coded target point
-    vec3_t up_direction = { 0 , 1, 0 };
+    vec3_t up_direction = {0, 1, 0};
 
     // Initialize the target
-    vec3_t target = { 0, 0, 1 };
+    vec3_t target = {0, 0, 1};
     mat4_t camera_yaw_rotation = mat4_make_rotation_y(camera.yaw);
     camera.direction = vec3_from_vec4(mat4_mul_vec4(camera_yaw_rotation, vec4_from_vec3(target)));
     // Offset the camera position with the direction calculated by the target
@@ -206,7 +210,6 @@ void update(void)
             // Multiply the view matrix with the object vertices to transform everything into camera space
             transformed_vertex = mat4_mul_vec4(view_matrix, transformed_vertex);
 
-
             // Save transformed vertex in the array of transformed vertices
             transformed_vertices[j] = transformed_vertex;
         }
@@ -244,48 +247,65 @@ void update(void)
                 continue;
             }
         }
+        // Create  a polygon from the original transform create_polygon
+        polygon_t polygon = create_polygon_from_triangle(
+            vec3_from_vec4(transformed_vertices[0]),
+            vec3_from_vec4(transformed_vertices[1]),
+            vec3_from_vec4(transformed_vertices[2]));
 
-        vec4_t projected_points[3];
+        // Clip the polygon and return a new polygon with potential new vertices
+        clip_polygon(&polygon);
 
-        // Loop all three vertices to perform projection
-        for (int j = 0; j < 3; j++)
+        triangle_t triangles_after_clipping[MAX_NUM_POLY_TRIANGLES];
+        int num_triangles_after_clipping = 0;
+        triangles_from_polygon(&polygon, triangles_after_clipping, &num_triangles_after_clipping);
+
+        for (int t = 0; t < num_triangles_after_clipping; t++)
         {
-            projected_points[j] = mat4_mul_vec4_project(proj_matrix, transformed_vertices[j]);
+            triangle_t triangle_after_clipping = triangles_after_clipping[t];
 
-            // scale into the view
-            projected_points[j].x *= (window_width / 2.0);
-            projected_points[j].y *= (window_height / 2.0);
+            vec4_t projected_points[3];
 
-            // Invert the y values to account for the flipped screen y coordinates
-            projected_points[j].y *= -1;
+            // Loop all three vertices to perform projection
+            for (int j = 0; j < 3; j++)
+            {
+                projected_points[j] = mat4_mul_vec4_project(proj_matrix, triangle_after_clipping.points[j]);
 
-            // translate projected points to the middle of the screen
-            projected_points[j].x += (window_width / 2);
-            projected_points[j].y += (window_height / 2);
-        }
+                // scale into the view
+                projected_points[j].x *= (window_width / 2.0);
+                projected_points[j].y *= (window_height / 2.0);
 
-        // Calculate the light of the triangle
-        float light = -vec3_dot(directional_light.direction, normal);
-        uint32_t color = light_apply_intensity(mesh_face.color, light);
+                // Invert the y values to account for the flipped screen y coordinates
+                projected_points[j].y *= -1;
 
-        triangle_t projected_triangle = {
-            .points = {
-                {projected_points[0].x, projected_points[0].y, projected_points[0].z, projected_points[0].w},
-                {projected_points[1].x, projected_points[1].y, projected_points[1].z, projected_points[1].w},
-                {projected_points[2].x, projected_points[2].y, projected_points[2].z, projected_points[2].w}},
-            .color = color,
-            .texcoords = {
-                {mesh_face.a_uv.u, mesh_face.a_uv.v},
-                {mesh_face.b_uv.u, mesh_face.b_uv.v},
-                {mesh_face.c_uv.u, mesh_face.c_uv.v},
-            },
-        };
+                // translate projected points to the middle of the screen
+                projected_points[j].x += (window_width / 2);
+                projected_points[j].y += (window_height / 2);
+            }
 
-        // Save the projected triangle in the array of triangles to render
-        // triangles_to_render[i] = projected_triangle;
-        if (num_triangles_to_render < MAX_TRIANGLES_PER_MESH)
-        {
-            triangles_to_render[num_triangles_to_render++] = projected_triangle;
+            // Calculate the light of the triangle
+            float light = -vec3_dot(directional_light.direction, normal);
+            uint32_t color = light_apply_intensity(mesh_face.color, light);
+
+            triangle_t triangle_to_render = {
+                .points = {
+                    {projected_points[0].x, projected_points[0].y, projected_points[0].z, projected_points[0].w},
+                    {projected_points[1].x, projected_points[1].y, projected_points[1].z, projected_points[1].w},
+                    {projected_points[2].x, projected_points[2].y, projected_points[2].z, projected_points[2].w}},
+                .color = color,
+                .texcoords = {
+                    {mesh_face.a_uv.u, mesh_face.a_uv.v},
+                    {mesh_face.b_uv.u, mesh_face.b_uv.v},
+                    {mesh_face.c_uv.u, mesh_face.c_uv.v},
+                },
+            };
+
+            // Save the projected triangle in the array of triangles to render
+            // triangles_to_render[i] = projected_triangle;
+            if (num_triangles_to_render < MAX_TRIANGLES_PER_MESH)
+            {
+                triangles_to_render[num_triangles_to_render++] = triangle_to_render;
+            }
         }
     }
 }
