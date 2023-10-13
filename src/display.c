@@ -18,7 +18,7 @@ int get_window_width(void)
 }
 int get_window_height(void)
 {
-    return window_width;
+    return window_height;
 }
 void set_render_method(int method)
 {
