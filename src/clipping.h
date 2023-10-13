@@ -22,6 +22,7 @@ typedef struct {
     vec3_t normal;
 
 } plane_t;
+
 typedef struct {
     vec3_t vertices[MAX_NUM_POLY_VERTICES];
     tex2_t texcoords[MAX_NUM_POLY_VERTICES];

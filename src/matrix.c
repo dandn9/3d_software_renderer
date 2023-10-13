@@ -129,10 +129,9 @@ mat4_t mat4_look_at(vec3_t eye, vec3_t target, vec3_t up) {
 
     vec3_t z_origin = vec3_sub(target, eye);
     vec3_normalize(&z_origin);
-    vec3_t x_origin = vec3_cross(z_origin, up);
+    vec3_t x_origin = vec3_cross(up, z_origin);
     vec3_normalize(&x_origin);
-    vec3_t y_origin = vec3_cross(x_origin, z_origin);
-    vec3_normalize(&y_origin);
+    vec3_t y_origin = vec3_cross(z_origin, x_origin);
 
     // This is the transposed matrix + translation matrix
     mat4_t view_matrix = {{

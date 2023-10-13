@@ -28,28 +28,18 @@ mat4_t world_matrix;
 bool is_running = false;
 int previous_frame_time = 0;
 
-bool should_cull = false;
+bool should_cull = true;
 void setup(void)
 {
     // Allocate the required memory in bytes to hold the color buffer
-    color_buffer = (uint32_t *)malloc(sizeof(uint32_t) * window_width * window_height);
-    // Allocate the required memory for the zbuffer
-    z_buffer = (float *)malloc(sizeof(float) * window_width * window_height);
 
-    // Creating a SDL texture that is used to display the color buffer
-    color_buffer_texture = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_RGBA32,
-        SDL_TEXTUREACCESS_STREAMING,
-        window_width,
-        window_height);
-
+    set_render_method(RenderTextured);
     // Initialize the perspective projection matrix
-    float aspecty = (float)window_height / window_width;
-    float aspectx = (float)window_width / window_height;
-    float fovy = PI / 3.0; // same as 180 / 3 or 60 deg
+    float aspecty = (float)get_window_height() / get_window_width();
+    float aspectx = (float)get_window_width() / get_window_height();
+    float fovy = PI / 3.0;                            // same as 180 / 3 or 60 deg
     float fovx = 2.0 * atan(tan(fovy / 2) * aspectx); // same as 180 / 3 or 60 deg
-    
+
     float z_near = 0.1;
     float z_far = 100.0;
 
@@ -58,7 +48,6 @@ void setup(void)
     // initialize the frustum planes with a point and a normal
     init_frustum_planes(fovx, fovy, z_near, z_far);
 
-
     // Manually load the hardcoded texture data from the static array
     // mesh_texture = (uint32_t*) REDBRICK_TEXTURE;
     // texture_width = 64;
@@ -66,59 +55,108 @@ void setup(void)
 
     // Start loading my array of vectors
     // load_cube_mesh_data();
-    load_obj_file_data("./assets/cube.obj");
+    load_obj_file_data("./assets/f22.obj");
     // loads the texutre info from an external PNG file
-    load_png_texture_data("./assets/cube.png");
+    load_png_texture_data("./assets/f22.png");
 }
 
 void process_input(void)
 {
     SDL_Event event;
-    SDL_PollEvent(&event);
-
-    switch (event.type)
+    while (SDL_PollEvent(&event))
     {
-    case SDL_QUIT:
-        is_running = false;
-        break;
-    case SDL_KEYDOWN:
-        if (event.key.keysym.sym == SDLK_1)
-            render_mode = WireframeLine;
-        if (event.key.keysym.sym == SDLK_2)
-            render_mode = WireframeDot;
-        if (event.key.keysym.sym == SDLK_3)
-            render_mode = Filled;
-        if (event.key.keysym.sym == SDLK_4)
-            render_mode = FilledWireframe;
-        if (event.key.keysym.sym == SDLK_5)
-            render_mode = RenderTextured;
-        if (event.key.keysym.sym == SDLK_6)
-            render_mode = RenderTexturedWired;
-        if (event.key.keysym.sym == SDLK_c)
-            should_cull = true;
-        if (event.key.keysym.sym == SDLK_v)
-            should_cull = false;
-        if (event.key.keysym.sym == SDLK_ESCAPE)
+        switch (event.type)
+        {
+        case SDL_QUIT:
             is_running = false;
-        if (event.key.keysym.sym == SDLK_UP)
-            camera.position.y += 3.0 * delta_time;
-        if (event.key.keysym.sym == SDLK_DOWN)
-            camera.position.y -= 3.0 * delta_time;
-        if (event.key.keysym.sym == SDLK_a)
-            camera.yaw += 1.0 * delta_time;
-        if (event.key.keysym.sym == SDLK_d)
-            camera.yaw -= 1.0 * delta_time;
-        if (event.key.keysym.sym == SDLK_w)
-        {
-            camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
-            camera.position = vec3_add(camera.position, camera.forward_velocity);
+            break;
+        case SDL_KEYDOWN:
+            if (event.key.keysym.sym == SDLK_1)
+            {
+
+                set_render_method(WireframeLine);
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_2)
+            {
+
+                set_render_method(WireframeDot);
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_3)
+            {
+
+                set_render_method(Filled);
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_4)
+            {
+
+                set_render_method(FilledWireframe);
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_5)
+            {
+
+                set_render_method(RenderTextured);
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_6)
+            {
+
+                set_render_method(RenderTexturedWired);
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_c)
+            {
+
+                should_cull = true;
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_v)
+            {
+
+                should_cull = false;
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_ESCAPE)
+            {
+                is_running = false;
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_UP)
+            {
+                camera.position.y += 3.0 * delta_time;
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_DOWN)
+            {
+                camera.position.y -= 3.0 * delta_time;
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_a)
+            {
+                camera.yaw += 1.0 * delta_time;
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_d)
+            {
+                camera.yaw -= 1.0 * delta_time;
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_w)
+            {
+                camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+                camera.position = vec3_add(camera.position, camera.forward_velocity);
+                break;
+            }
+            if (event.key.keysym.sym == SDLK_s)
+            {
+                camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+                camera.position = vec3_sub(camera.position, camera.forward_velocity);
+                break;
+            }
         }
-        if (event.key.keysym.sym == SDLK_s)
-        {
-            camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
-            camera.position = vec3_sub(camera.position, camera.forward_velocity);
-        }
-        break;
     }
 }
 
@@ -151,7 +189,7 @@ void update(void)
     num_triangles_to_render = 0;
 
     mesh.rotation.x += 0.00 * delta_time;
-    mesh.rotation.y += 0.000 * delta_time;
+    mesh.rotation.y += 0.200 * delta_time;
     mesh.rotation.z += 0.00 * delta_time;
     mesh.translation.z = 5.0;
 
@@ -255,8 +293,7 @@ void update(void)
             vec3_from_vec4(transformed_vertices[2]),
             mesh_face.a_uv,
             mesh_face.b_uv,
-            mesh_face.c_uv
-            );
+            mesh_face.c_uv);
 
         // Clip the polygon and return a new polygon with potential new vertices
         clip_polygon(&polygon);
@@ -277,15 +314,15 @@ void update(void)
                 projected_points[j] = mat4_mul_vec4_project(proj_matrix, triangle_after_clipping.points[j]);
 
                 // scale into the view
-                projected_points[j].x *= (window_width / 2.0);
-                projected_points[j].y *= (window_height / 2.0);
+                projected_points[j].x *= (get_window_width() / 2.0);
+                projected_points[j].y *= (get_window_height() / 2.0);
 
                 // Invert the y values to account for the flipped screen y coordinates
                 projected_points[j].y *= -1;
 
                 // translate projected points to the middle of the screen
-                projected_points[j].x += (window_width / 2);
-                projected_points[j].y += (window_height / 2);
+                projected_points[j].x += (get_window_width() / 2);
+                projected_points[j].y += (get_window_height() / 2);
             }
 
             // Calculate the light of the triangle
@@ -317,6 +354,8 @@ void update(void)
 
 void render(void)
 {
+    clear_color_buffer(0xFF000000);
+    clear_z_buffer();
     draw_grid();
 
     // draw_filled_triangle(300,100, 50, 400, 500, 700, 0xFFFF00FF);
@@ -327,7 +366,7 @@ void render(void)
         triangle_t triangle = triangles_to_render[i];
 
         // Draw filled triangle
-        if (render_mode == Filled || render_mode == FilledWireframe)
+        if (should_render_filled_triangle())
         {
             draw_filled_triangle(
                 triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w,
@@ -336,7 +375,7 @@ void render(void)
                 triangle.color);
         }
         // Draw textured triangle
-        if (render_mode == RenderTextured || render_mode == RenderTexturedWired)
+        if (should_render_textured_triangle())
         {
             draw_textured_triangle(
                 triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.texcoords[0].u, triangle.texcoords[0].v,
@@ -345,7 +384,7 @@ void render(void)
                 mesh_texture);
         }
         // Draw wireframe
-        if (render_mode == WireframeDot || render_mode == WireframeLine || render_mode == FilledWireframe || render_mode == RenderTexturedWired)
+        if (should_render_wireframe())
         {
             draw_triangle(
                 triangle.points[0].x, triangle.points[0].y,
@@ -355,7 +394,7 @@ void render(void)
         }
 
         // Draw dots
-        if (render_mode == WireframeDot)
+        if (should_render_dots())
         {
             // Draw Vertex Points
             draw_rect(triangle.points[0].x - 3, triangle.points[0].y - 3, 6, 6, 0xFFFF0000);
@@ -366,16 +405,10 @@ void render(void)
 
     render_color_buffer();
 
-    clear_color_buffer(0xFF000000);
 
-    clear_z_buffer();
-
-    SDL_RenderPresent(renderer);
 }
 void free_resources(void)
 {
-    free(color_buffer);
-    free(z_buffer);
     upng_free(png_texture);
     array_free(mesh.faces);
     array_free(mesh.vertices);

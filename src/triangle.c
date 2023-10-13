@@ -197,11 +197,11 @@ void draw_triangle_pixel(int x, int y, vec4_t point_a, vec4_t point_b, vec4_t po
     interpolated_reciprocal_w = 1.0 - interpolated_reciprocal_w;
 
     // Only draw the pixel if the depth value is less than the one previous stored in the zbuffer
-    if (interpolated_reciprocal_w < z_buffer[(window_width * y) + x])
+    if (interpolated_reciprocal_w < get_zbuffer_at(x, y))
     {
         draw_pixel(x, y, color);
         // Update the zbuffer value with the 1/w of this current pixel
-        z_buffer[(window_width * y) + x] = interpolated_reciprocal_w;
+        update_zbuffer_at(x, y, interpolated_reciprocal_w);
     }
 }
 // Function to draw the textured pixel at position x and y using interpolation
@@ -244,11 +244,11 @@ void draw_texel(int x, int y,
     interpolated_reciprocal_w = 1.0 - interpolated_reciprocal_w;
 
     // Only draw the pixel if the depth value is less than the one previous stored in the zbuffer
-    if (interpolated_reciprocal_w < z_buffer[(window_width * y) + x])
+    if (interpolated_reciprocal_w < get_zbuffer_at(x, y))
     {
         draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
         // Update the zbuffer value with the 1/w of this current pixel
-        z_buffer[(window_width * y) + x] = interpolated_reciprocal_w;
+        update_zbuffer_at(x, y, interpolated_reciprocal_w);
     }
 }
 
